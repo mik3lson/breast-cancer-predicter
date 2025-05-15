@@ -12,7 +12,7 @@ app.config['SECRET_KEY'] ='dev'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
 
-class UploadImage(FlaskForm):   #sing FlaskForm to create the html form and validate the input 
+class UploadImage(FlaskForm):   #using FlaskForm to create the html form and validate the input 
     file = FileField( validators=[InputRequired(), FileAllowed(['jpg','png','jpeg'])])
     submit = SubmitField('Upload')
 
@@ -26,14 +26,7 @@ def index():
     return render_template('upload.html', form = form)
 
 
-"""
-@app.route('/upload', methods =['POST'])
-def upload():
-    file = request.files['files']
-    file.path = os.path.join('uploads', secure_filename(file.filename))
-    file.save(file.path)
-    return render_template ('upload.html')
-"""
+
 
 
 if __name__=='__main__':
