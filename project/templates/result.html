@@ -8,6 +8,9 @@
 <body>
     <h2>Prediction: {{prediction}}</h2>
     <img src="{{ image_path }}" alt="Uploaded Image" width="300">
+
+    <p>Tumor Localization (Grad-CAM):</p>
+    <img src="{{ url_for('static', filename=heatmap_path.split('/')[-1]) }}" width="300">
     
     <br>
        <a href ="{{url_for('index')}}"> Try another image</a>

@@ -8,7 +8,13 @@ from flask_wtf.file import FileAllowed
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 import numpy as np
+import tensorflow as  tf
 
+from tf_keras_vis.gradcam import Gradcam
+from tf_keras_vis.utils.model_modifiers import ReplaceToLinear
+from tf_keras_vis.utils.scores import CategoricalScore
+import matplotlib.pyplot as plt
+import cv2
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -63,9 +69,37 @@ def index():
         predicted_class = class_names[predicted_index]
 
         
-        
+        # Grad-CAM setup
+        def model_modifier(m):
+            m.layers[-1].activation = tf.keras.activations.linear
 
-        return render_template('result.html', prediction=predicted_class, image_path=save_path)
+        score = CategoricalScore([predicted_index])
+        gradcam = Gradcam(model, model_modifier=model_modifier, clone=True)
+        cam = gradcam(score, img_array, penultimate_layer=-1)
+
+        # Post-process CAM heatmap
+        heatmap = cam[0]
+        heatmap = np.uint8(255 * heatmap)
+        heatmap = cv2.resize(heatmap, (256, 256))
+        heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
+
+        original_img = np.uint8(img_array[0] * 255)
+
+        # Ensure same shape
+        if heatmap.shape != original_img.shape:
+            heatmap = cv2.resize(heatmap, (original_img.shape[1], original_img.shape[0]))
+
+        # Make sure both are uint8
+        if original_img.dtype != np.uint8:
+            original_img = original_img.astype(np.uint8)
+
+        # Blend heatmap and original image
+        overlay = cv2.addWeighted(original_img, 0.6, heatmap, 0.4, 0)
+
+        heatmap_path = os.path.join('static', 'heatmap_' + filename)
+        cv2.imwrite(heatmap_path, overlay)
+
+        return render_template('result.html', prediction=predicted_class, image_path=save_path, heatmap_path = heatmap_path)
 
     return render_template('index.html', form = form)
 
@@ -110,7 +144,9 @@ def query_groq_llama(user_message):
         return data["choices"][0]["message"]["content"].strip()
     except (KeyError, IndexError) as e:
         raise Exception("Unexpected response format from Groq: 'choices[0].message.content' missing")
-   
+
+
+#creating routes for the Chatbot
 
 @app.route("/chat", methods=["POST","GET"])
 def chat():
