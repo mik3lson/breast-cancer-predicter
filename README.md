@@ -42,7 +42,7 @@ Uploads a mammogram image and returns prediction, heatmap, and image paths.
   "session_id": "ae12-4bf0-99d2"  // use for report generation
 }
 
-2. POST /generate-report/{session_id}
+##2. POST /generate-report/{session_id}
 Generates a detailed medical report using Groq’s LLaMA model.
 
 Request:
@@ -52,8 +52,7 @@ session_id: (provided in /predict/ response)
 Response:
 
 json
-Copy
-Edit
+
 {
   "report": "Patient Jane Doe (ID: 12345) has a BI-RADS 4 mammogram..."
 }
